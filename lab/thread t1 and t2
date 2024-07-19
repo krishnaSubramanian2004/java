@@ -1,0 +1,165 @@
+import java.util.concurrent.CountDownLatch;
+
+public class MatrixOperations {
+
+    // Matrix T1 and T2
+    public static class MatrixThread extends Thread {
+        private int[][] matrix;
+        private final int[][] predefinedMatrix;
+        private final CountDownLatch latch;
+        private final String matrixName;
+
+        public MatrixThread(int[][] predefinedMatrix, CountDownLatch latch, String matrixName) {
+            this.predefinedMatrix = predefinedMatrix;
+            this.latch = latch;
+            this.matrixName = matrixName;
+        }
+
+        @Override
+        public void run() {
+            matrix = predefinedMatrix;
+            System.out.println(matrixName + " initialized:");
+            printMatrix(matrix);
+            latch.countDown();  // Signal that this matrix is ready
+        }
+
+        public int[][] getMatrix() {
+            return matrix;
+        }
+
+        private void printMatrix(int[][] matrix) {
+            for (int[] row : matrix) {
+                for (int value : row) {
+                    System.out.print(value + " ");
+                }
+                System.out.println();
+            }
+        }
+    }
+
+    // Thread to count elements in matrices
+    public static class CountElementsThread extends Thread {
+        private final MatrixThread t1;
+        private final MatrixThread t2;
+        private final CountDownLatch latch;
+        private int countT1;
+        private int countT2;
+
+        public CountElementsThread(MatrixThread t1, MatrixThread t2, CountDownLatch latch) {
+            this.t1 = t1;
+            this.t2 = t2;
+            this.latch = latch;
+        }
+
+        @Override
+        public void run() {
+            try {
+                latch.await();  // Wait for both matrices to be initialized
+
+                countT1 = countElements(t1.getMatrix());
+                countT2 = countElements(t2.getMatrix());
+
+                System.out.println("Count of elements in Matrix T1: " + countT1);
+                System.out.println("Count of elements in Matrix T2: " + countT2);
+
+                latch.countDown();  // Signal that counting is complete
+
+            } catch (InterruptedException e) {
+                System.out.println("CountElementsThread was interrupted.");
+            }
+        }
+
+        private int countElements(int[][] matrix) {
+            return matrix.length * matrix[0].length;
+        }
+    }
+
+    // Thread to add matrices
+    public static class AddMatricesThread extends Thread {
+        private final MatrixThread t1;
+        private final MatrixThread t2;
+        private final CountDownLatch latch;
+
+        public AddMatricesThread(MatrixThread t1, MatrixThread t2, CountDownLatch latch) {
+            this.t1 = t1;
+            this.t2 = t2;
+            this.latch = latch;
+        }
+
+        @Override
+        public void run() {
+            try {
+                latch.await();  // Wait for counting to be done
+
+                int[][] result = addMatrices(t1.getMatrix(), t2.getMatrix());
+                System.out.println("Result of matrix addition:");
+                printMatrix(result);
+
+            } catch (InterruptedException e) {
+                System.out.println("AddMatricesThread was interrupted.");
+            }
+        }
+
+        private int[][] addMatrices(int[][] mat1, int[][] mat2) {
+            int[][] result = new int[mat1.length][mat1[0].length];
+            for (int i = 0; i < mat1.length; i++) {
+                for (int j = 0; j < mat1[i].length; j++) {
+                    result[i][j] = mat1[i][j] + mat2[i][j];
+                }
+            }
+            return result;
+        }
+
+        private void printMatrix(int[][] matrix) {
+            for (int[] row : matrix) {
+                for (int value : row) {
+                    System.out.print(value + " ");
+                }
+                System.out.println();
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        // Initialize matrices
+        int[][] matrix1 = {
+            {1, 2, 3},
+            {4, 5, 6},
+            {7, 8, 9}
+        };
+        int[][] matrix2 = {
+            {9, 8, 7},
+            {6, 5, 4},
+            {3, 2, 1}
+        };
+
+        CountDownLatch latchForMatrixInitialization = new CountDownLatch(2);
+        CountDownLatch latchForCounting = new CountDownLatch(1);
+
+        // Create and start threads
+        MatrixThread t1 = new MatrixThread(matrix1, latchForMatrixInitialization, "Matrix T1");
+        MatrixThread t2 = new MatrixThread(matrix2, latchForMatrixInitialization, "Matrix T2");
+        CountElementsThread countElementsThread = new CountElementsThread(t1, t2, latchForMatrixInitialization);
+        AddMatricesThread addMatricesThread = new AddMatricesThread(t1, t2, latchForCounting);
+
+        t1.start();
+        t2.start();
+        countElementsThread.start();
+        addMatricesThread.start();
+    }
+}
+output
+Matrix T1 initialized:
+1 2 3 
+4 5 6 
+7 8 9 
+Matrix T2 initialized:
+9 8 7 
+6 5 4 
+3 2 1 
+Count of elements in Matrix T1: 9
+Count of elements in Matrix T2: 9
+Result of matrix addition:
+10 10 10 
+10 10 10 
+10 10 10 
