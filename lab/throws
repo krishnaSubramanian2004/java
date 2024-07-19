@@ -1,0 +1,48 @@
+// Custom exception class
+public class CustomException extends Exception {
+    public CustomException(String message) {
+        super(message);
+    }
+}
+public class ExampleClass {
+
+    // Method that throws a checked exception
+    public void methodWithThrows() throws CustomException {
+        System.out.println("Method with throws");
+        // Simulate an error
+        throw new CustomException("Custom exception thrown from methodWithThrows.");
+    }
+
+    // Another method that throws a checked exception
+    public void anotherMethodWithThrows() throws CustomException {
+        System.out.println("Another method with throws");
+        // Simulate an error
+        throw new CustomException("Custom exception thrown from anotherMethodWithThrows.");
+    }
+}
+public class Main {
+
+    public static void main(String[] args) {
+        ExampleClass example = new ExampleClass();
+
+        try {
+            // Call method that throws exception
+            example.methodWithThrows();
+        } catch (CustomException e) {
+            System.out.println("Caught exception in main: " + e.getMessage());
+        }
+
+        try {
+            // Call another method that throws exception
+            example.anotherMethodWithThrows();
+        } catch (CustomException e) {
+            System.out.println("Caught exception in main: " + e.getMessage());
+        }
+    }
+}
+output
+
+Method with throws
+Caught exception in main: Custom exception thrown from methodWithThrows.
+Another method with throws
+Caught exception in main: Custom exception thrown from anotherMethodWithThrows.
