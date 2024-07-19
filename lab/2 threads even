@@ -1,0 +1,89 @@
+public class ThreadJoinSleepDemo {
+
+    // Inner class for Thread 1
+    public static class Thread1 extends Thread {
+        private long sleepTime;
+
+        public Thread1(long sleepTime) {
+            this.sleepTime = sleepTime;
+        }
+
+        @Override
+        public void run() {
+            try {
+                System.out.println("Thread1 started. Sleeping for " + sleepTime + " milliseconds.");
+                Thread.sleep(sleepTime);
+                System.out.println("Thread1 completed its sleep.");
+            } catch (InterruptedException e) {
+                System.out.println("Thread1 was interrupted.");
+            }
+        }
+    }
+
+    // Inner class for Thread 2
+    public static class Thread2 extends Thread {
+        private long sleepTime;
+
+        public Thread2(long sleepTime) {
+            this.sleepTime = sleepTime;
+        }
+
+        @Override
+        public void run() {
+            try {
+                System.out.println("Thread2 started. Sleeping for " + sleepTime + " milliseconds.");
+                Thread.sleep(sleepTime);
+                System.out.println("Thread2 completed its sleep.");
+            } catch (InterruptedException e) {
+                System.out.println("Thread2 was interrupted.");
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        // Define sleep times for both threads
+        long sleepTimeThread1 = 10000; // 10 seconds
+        long sleepTimeThread2 = 5000;  // 5 seconds
+
+        // Create thread instances
+        Thread1 t1 = new Thread1(sleepTimeThread1);
+        Thread2 t2 = new Thread2(sleepTimeThread2);
+
+        // Start the threads
+        t1.start();
+        t2.start();
+
+        try {
+            // Join the threads based on their IDs (even IDs in this case)
+            if (t1.getId() % 2 == 0) {
+                System.out.println("Joining Thread1.");
+                t1.join();
+                System.out.println("Thread1 has finished.");
+            } else {
+                System.out.println("Putting Thread1 to sleep.");
+                Thread.sleep(2000); // Sleep for demonstration purpose
+                System.out.println("Thread1 is still running.");
+            }
+
+            if (t2.getId() % 2 == 0) {
+                System.out.println("Joining Thread2.");
+                t2.join();
+                System.out.println("Thread2 has finished.");
+            } else {
+                System.out.println("Putting Thread2 to sleep.");
+                Thread.sleep(2000); // Sleep for demonstration purpose
+                System.out.println("Thread2 is still running.");
+            }
+
+        } catch (InterruptedException e) {
+            System.out.println("Main thread was interrupted.");
+        }
+    }
+}
+output
+Thread1 started. Sleeping for 10000 milliseconds.
+Thread2 started. Sleeping for 5000 milliseconds.
+Joining Thread1.
+Thread1 has finished.
+Joining Thread2.
+Thread2 has finished.
